@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>DWD Feuerindex-Widget – Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
+    section { margin-bottom: 48px; }
+    h2 { font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
+    code { background: #f5f5f5; padding: 1px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>DWD Feuerindex-Widget – Demo</h1>
+  <p>
+    Ersetze <code>DEIN_GITHUB_USER/DEIN_REPO</code> unten durch deinen tatsächlichen
+    GitHub-Nutzernamen und Repo-Namen, bevor du diese Seite testest.
+  </p>
+
+  <section>
+    <h2>Übersicht: Karte + Liste, alle Stationen</h2>
+    <script src="./widget.js"
+      data-base-url="https://raw.githubusercontent.com/DEIN_GITHUB_USER/DEIN_REPO/main/data"
+      data-index="both"></script>
+  </section>
+
+  <section>
+    <h2>Einzelstation (z.B. für eine Unterseite, fest vorgegeben)</h2>
+    <script src="./widget.js"
+      data-base-url="https://raw.githubusercontent.com/DEIN_GITHUB_USER/DEIN_REPO/main/data"
+      data-station="Duisburg-Baerl"
+      data-index="both"></script>
+  </section>
+
+  <section>
+    <h2>Nur Graslandfeuerindex, nur Liste</h2>
+    <script src="./widget.js"
+      data-base-url="https://raw.githubusercontent.com/DEIN_GITHUB_USER/DEIN_REPO/main/data"
+      data-index="glfi"
+      data-view="list"></script>
+  </section>
+</body>
+</html>
