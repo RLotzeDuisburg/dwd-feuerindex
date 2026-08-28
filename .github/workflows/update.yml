@@ -1,0 +1,44 @@
+name: Update fire danger index data
+
+on:
+  schedule:
+    # DWD veröffentlicht die Werte werktäglich gegen 05:00 UTC.
+    # Wir laufen kurz danach und noch einmal am Nachmittag als Sicherheitsnetz.
+    - cron: "20 5 * * *"
+    - cron: "20 14 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Fetch and build data
+        run: python scripts/update_indices.py
+
+      - name: Commit changes if any
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "Keine Änderungen."
+          else
+            git commit -m "Update fire danger index data ($(date -u +%Y-%m-%dT%H:%MZ))"
+            git push
+          fi
