@@ -111,6 +111,33 @@ def parse_stations_list(raw: bytes) -> dict[int, StationMeta]:
     return out
 
 
+# Das DWD-PDF beschreibt die Date-Spalte als "YYYY-MM-DD", tatsächlich
+# liefern die Dateien aber z.B. "20260828 04:17" (kompakt, mit Uhrzeit).
+# Wir akzeptieren daher mehrere Formate und fallen notfalls auf eine
+# Regex-Extraktion der ersten 8 Ziffern (JJJJMMTT) zurück.
+DATE_FORMATS = (
+    "%Y-%m-%d",
+    "%Y-%m-%d %H:%M",
+    "%Y%m%d %H:%M",
+    "%Y%m%d%H%M",
+    "%Y%m%d",
+)
+DATE_DIGITS_RE = re.compile(r"(\d{4})(\d{2})(\d{2})")
+
+
+def parse_row_date(raw: str) -> date:
+    raw = raw.strip()
+    for fmt in DATE_FORMATS:
+        try:
+            return datetime.strptime(raw, fmt).date()
+        except ValueError:
+            continue
+    m = DATE_DIGITS_RE.search(raw)
+    if m:
+        return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+    raise ValueError(f"Unbekanntes Datumsformat: {raw!r}")
+
+
 def parse_station_csv(raw_gz: bytes, param: str) -> dict[str, int]:
     """Liest eine einzelne gzip-komprimierte Stationsdatei und gibt
     {iso_date: value} für den 7-Tage-Forecast zurück."""
@@ -122,12 +149,9 @@ def parse_station_csv(raw_gz: bytes, param: str) -> dict[str, int]:
         return {}
     # Falls mehrere Zeilen enthalten sind (z.B. History), die mit dem
     # spätesten Datum verwenden.
-    def row_date(row: list[str]) -> str:
-        return row[1]
-
-    rows.sort(key=row_date)
+    rows.sort(key=lambda row: parse_row_date(row[1]))
     row = rows[-1]
-    base_date = datetime.strptime(row[1].strip(), "%Y-%m-%d").date()
+    base_date = parse_row_date(row[1])
     values: dict[str, int] = {}
     for offset, raw_val in enumerate(row[2:9]):
         raw_val = raw_val.strip()
